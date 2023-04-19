@@ -90,18 +90,18 @@ namespace NoPlayerHPBarNickname
 
         private void UpdateConfiguration()
         {
-            hideBar = hideBarConfig.Value;
-            hideNick = hideNickConfig.Value;
+            showBar = showBarConfig.Value;
+            showNick = showNickConfig.Value;
             Debug("Configuration Received");
         }
 
         #endregion
         #region values
 
-        internal static ConfigEntry<bool> hideNickConfig;
-        internal static ConfigEntry<bool> hideBarConfig;
-        internal static bool hideNick;
-        internal static bool hideBar;
+        internal static ConfigEntry<bool> showNickConfig;
+        internal static ConfigEntry<bool> showBarConfig;
+        internal static bool showNick;
+        internal static bool showBar;
 
         #endregion
 
@@ -114,8 +114,8 @@ namespace NoPlayerHPBarNickname
             
             _ = configSync.AddLockingConfigEntry(config("General", "Lock Configuration", true, ""));
             
-            hideNickConfig = config("General", "Hide Nick", false, "");
-            hideBarConfig = config("General", "Hide Bar", true, "");
+            showNickConfig = config("General", "Show Nick", true, "");
+            showBarConfig = config("General", "Show Bar", false, "");
 
             SetupWatcherOnConfigFile();
             Config.ConfigReloaded += (_, _) => { UpdateConfiguration(); };
@@ -134,15 +134,14 @@ namespace NoPlayerHPBarNickname
         [HarmonyPatch]
         public static class Pacth
         {
-            [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud)), HarmonyPrefix]
-            private static bool EnemyHudShowHudPacth(Character c)
+            [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud)), HarmonyPostfix]
+            private static void EnemyHudShowHudPacth(Character c)
             {
-                if (c.IsPlayer())
-                {
-                    return false;
-                }
-
-                return true;
+                if (!c.IsPlayer()) return;
+                if(!EnemyHud.instance.m_huds.TryGetValue(c, out EnemyHud.HudData hud)) return;
+                
+                hud.m_name.transform.gameObject.SetActive(showNick);
+                hud.m_gui.transform.Find("Health").gameObject.SetActive(showBar);
             }
         }
 
