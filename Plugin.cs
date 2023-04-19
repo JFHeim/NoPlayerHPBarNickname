@@ -107,7 +107,7 @@ namespace NoPlayerHPBarNickname
 
 
         private void Awake()
-        {
+        { 
             #region config
 
             Config.SaveOnConfigSet = false;
