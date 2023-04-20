@@ -22,9 +22,10 @@ namespace NoPlayerHPBarNickname
         public static Plugin _self;
 
         #endregion
+
         #region ConfigSettings
 
-        static string ConfigFileName = "com.Frogger.TowerDefense.cfg";
+        static string ConfigFileName = "com.Frogger.NoPlayerHPBarNickname.cfg";
         DateTime LastConfigChange;
 
         public static readonly ConfigSync configSync = new(ModName)
@@ -58,6 +59,61 @@ namespace NoPlayerHPBarNickname
         }
 
         #endregion
+
+        #region values
+
+        internal static ConfigEntry<bool> showNickConfig;
+        internal static ConfigEntry<bool> showBarConfig;
+        internal static bool showNick;
+        internal static bool showBar;
+
+        #endregion
+
+
+        private void Awake()
+        {
+            _self = this;
+
+            #region config
+
+            Config.SaveOnConfigSet = false;
+            SetupWatcherOnConfigFile();
+
+            _ = configSync.AddLockingConfigEntry(config("General", "Lock Configuration", true, ""));
+
+            showNickConfig = config("General", "Show Nick", true, "");
+            showBarConfig = config("General", "Show Bar", false, "");
+
+            Config.ConfigReloaded += (_, _) => { UpdateConfiguration(); };
+            Config.SettingChanged += (_, _) => { UpdateConfiguration(); };
+            Config.SaveOnConfigSet = true;
+            Config.Save();
+
+            #endregion
+
+
+            harmony.PatchAll();
+        }
+
+        #region Patch
+
+        [HarmonyPatch]
+        public static class Pacth
+        {
+            [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud)), HarmonyPostfix]
+            private static void EnemyHudShowHudPacth(Character c)
+            {
+                if (!c.IsPlayer()) return;
+                if (!EnemyHud.instance.m_huds.TryGetValue(c, out EnemyHud.HudData hud)) return;
+
+                hud.m_name.transform.gameObject.SetActive(showNick);
+                hud.m_gui.transform.Find("Health").gameObject.SetActive(showBar);
+            }
+        }
+
+        #endregion
+
+
         #region Config
 
         public void SetupWatcherOnConfigFile()
@@ -96,57 +152,7 @@ namespace NoPlayerHPBarNickname
         }
 
         #endregion
-        #region values
 
-        internal static ConfigEntry<bool> showNickConfig;
-        internal static ConfigEntry<bool> showBarConfig;
-        internal static bool showNick;
-        internal static bool showBar;
-
-        #endregion
-
-
-        private void Awake()
-        { 
-            #region config
-
-            Config.SaveOnConfigSet = false;
-            
-            _ = configSync.AddLockingConfigEntry(config("General", "Lock Configuration", true, ""));
-            
-            showNickConfig = config("General", "Show Nick", true, "");
-            showBarConfig = config("General", "Show Bar", false, "");
-
-            SetupWatcherOnConfigFile();
-            Config.ConfigReloaded += (_, _) => { UpdateConfiguration(); };
-            Config.SaveOnConfigSet = true;
-            Config.Save();
-
-            #endregion
-
-
-            _self = this;
-            harmony.PatchAll(typeof(Pacth));
-        }
-
-        #region Patch
-
-        [HarmonyPatch]
-        public static class Pacth
-        {
-            [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud)), HarmonyPostfix]
-            private static void EnemyHudShowHudPacth(Character c)
-            {
-                if (!c.IsPlayer()) return;
-                if(!EnemyHud.instance.m_huds.TryGetValue(c, out EnemyHud.HudData hud)) return;
-                
-                hud.m_name.transform.gameObject.SetActive(showNick);
-                hud.m_gui.transform.Find("Health").gameObject.SetActive(showBar);
-            }
-        }
-
-        #endregion
-        
         #region tools
 
         public static void Debug(string msg)
@@ -160,6 +166,5 @@ namespace NoPlayerHPBarNickname
         }
 
         #endregion
-
     }
 }
