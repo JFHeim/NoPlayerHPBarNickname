@@ -38,9 +38,9 @@ public class Plugin : BaseUnityPlugin
             "Should also mobs bars and nicknames be shown/hidden as players");
         showNick = config("General", "Show Nick", true, "");
         showBar = config("General", "Show Bar", false, "");
-        showBarMinDistance = config("General", "Show Bar Min Distance", 1,
+        showBarMinDistance = config("General", "Show Bar Min Distance", 2,
             "If target is less than this distance from player, bar will be shown anyway");
-        showNickMinDistance = config("General", "Show Nick Min Distance", 1,
+        showNickMinDistance = config("General", "Show Nick Min Distance", 4,
             "If target is less than this distance from player, nickName will be shown anyway");
 
         Config.ConfigReloaded += (_, _) => UpdateConfiguration();
