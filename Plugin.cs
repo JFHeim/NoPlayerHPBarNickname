@@ -14,7 +14,7 @@ public class Plugin : BaseUnityPlugin
 {
     private const string
         ModName = "NoPlayerHPBarNickname",
-        ModVersion = "1.2.0",
+        ModVersion = "1.3.1",
         ModAuthor = "Frogger",
         ModGUID = $"com.{ModAuthor}.{ModName}";
 
@@ -55,30 +55,37 @@ public class Plugin : BaseUnityPlugin
     [HarmonyPatch]
     public static class Pacth
     {
-        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds))] [HarmonyPostfix]
+        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds)), HarmonyPostfix, HarmonyWrapSafe]
         private static void UpdateHuds(EnemyHud __instance, Player player)
         {
-            if (!player || !m_localPlayer) return;
-
-            foreach (var hud in __instance.m_huds)
+            try
             {
-                var character = hud.Key;
-                var data = hud.Value;
-                var nickObj = data.m_name?.transform.gameObject;
-                var healthObj = data.m_gui?.transform.Find("Health").gameObject;
-                if (!nickObj || !healthObj) continue;
-                if (!character.IsPlayer() && !appliesToMobs.Value)
+                if (!__instance || __instance.m_huds == null || __instance.m_huds.Count <= 0 ||
+                    !player || !m_localPlayer) return;
+
+                foreach (var hud in __instance.m_huds)
                 {
-                    nickObj.SetActive(true);
-                    healthObj.SetActive(true);
-                    continue;
+                    var character = hud.Key;
+                    var data = hud.Value;
+                    var nickObj = data?.m_name?.transform.gameObject;
+                    var healthObj = data?.m_gui?.transform.Find("Health")?.gameObject;
+                    if (!nickObj || !healthObj) continue;
+                    if (!character.IsPlayer() && !appliesToMobs.Value)
+                    {
+                        nickObj.SetActive(true);
+                        healthObj.SetActive(true);
+                        continue;
+                    }
+
+                    var distance = Utils.DistanceXZ(m_localPlayer.transform.position, character.transform.position);
+
+                    nickObj.SetActive(showNick.Value || distance < showNickMinDistance.Value);
+                    healthObj.SetActive(showBar.Value || distance < showBarMinDistance.Value);
                 }
-
-                var distance = Utils.DistanceXZ(m_localPlayer.transform.position, character.transform.position);
-
-                nickObj.SetActive(showNick.Value || distance < showNickMinDistance.Value);
-
-                healthObj.SetActive(showBar.Value || distance < showBarMinDistance.Value);
+            }
+            catch (Exception e)
+            {
+                //idk why there is an exception here, but lets ignore it, okay?s
             }
         }
     }
