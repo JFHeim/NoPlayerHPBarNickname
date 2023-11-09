@@ -14,17 +14,22 @@ public class Plugin : BaseUnityPlugin
 {
     private const string
         ModName = "NoPlayerHPBarNickname",
-        ModVersion = "1.3.1",
+        ModVersion = "1.5.0",
         ModAuthor = "Frogger",
         ModGUID = $"com.{ModAuthor}.{ModName}";
 
     public static Plugin _self;
 
-    internal static ConfigEntry<bool> showNick;
-    internal static ConfigEntry<bool> showBar;
-    internal static ConfigEntry<int> showNickMinDistance;
-    internal static ConfigEntry<int> showBarMinDistance;
-    internal static ConfigEntry<bool> appliesToMobs;
+    //internal static ConfigEntry<bool> showNick;
+    //internal static ConfigEntry<bool> showBar;
+    internal static ConfigEntry<int> mobs_nameDistance;
+    internal static ConfigEntry<int> mobs_barDistance;
+    internal static ConfigEntry<int> mobs_alertedSignDistance;
+    internal static ConfigEntry<int> mobs_awareSignDistance;
+    internal static ConfigEntry<int> mobs_starsDistance;
+    internal static ConfigEntry<int> players_nameDistance;
+    internal static ConfigEntry<int> players_barDistance;
+
 
     private void Awake()
     {
@@ -33,15 +38,21 @@ public class Plugin : BaseUnityPlugin
         SetupWatcherOnConfigFile();
 
         configSync.AddLockingConfigEntry(config("General", "Lock Configuration", true, ""));
+        mobs_barDistance = config("Mobs", "Mobs healthBar distance", 6,
+            "If mob is more than this distance from player, its health bar will be hidden. Set to 0 to hide health bar completely");
+        mobs_nameDistance = config("Mobs", "Mobs name distance", 2,
+            "If mob is more than this distance from player, its name will be hidden. Set to 0 to hide name completely");
+        mobs_alertedSignDistance = config("Mobs", "Mobs alert sign distance", 5,
+            "If mob is more than this distance from player, its alert sign will be hidden. Set to 0 to hide alert sign completely");
+        mobs_starsDistance = config("Mobs", "Mobs stars distance", 5,
+            "If mob is more than this distance from player, its stars will be hidden. Set to 0 to hide stars completely");
+        mobs_awareSignDistance = config("Mobs", "Mobs aware sign distance", 5,
+            "If mob is more than this distance from player, its aware sign will be hidden. Set to 0 to hide aware sign completely");
 
-        appliesToMobs = config("General", "Applies to Mobs", false,
-            "Should also mobs bars and nicknames be shown/hidden as players");
-        showNick = config("General", "Show Nick", true, "");
-        showBar = config("General", "Show Bar", false, "");
-        showBarMinDistance = config("General", "Show Bar Min Distance", 2,
-            "If target is less than this distance from player, bar will be shown anyway");
-        showNickMinDistance = config("General", "Show Nick Min Distance", 4,
-            "If target is less than this distance from player, nickName will be shown anyway");
+        players_barDistance = config("Players", "Players healthBar distance", 6,
+            "If player is more than this distance from player, his/her health bar will be hidden. Set to 0 to hide health bar completely");
+        players_nameDistance = config("Players", "Players name distance", 2,
+            "If player is more than this distance from player, his/her name will be hidden. Set to 0 to hide name completely");
 
         Config.ConfigReloaded += (_, _) => UpdateConfiguration();
         Config.SettingChanged += (_, _) => UpdateConfiguration();
@@ -53,9 +64,9 @@ public class Plugin : BaseUnityPlugin
     }
 
     [HarmonyPatch]
-    public static class Pacth
+    public static class Patch
     {
-        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds)), HarmonyPostfix, HarmonyWrapSafe]
+        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds))] [HarmonyPostfix] [HarmonyWrapSafe]
         private static void UpdateHuds(EnemyHud __instance, Player player)
         {
             try
@@ -70,22 +81,34 @@ public class Plugin : BaseUnityPlugin
                     var nickObj = data?.m_name?.transform.gameObject;
                     var healthObj = data?.m_gui?.transform.Find("Health")?.gameObject;
                     if (!nickObj || !healthObj) continue;
-                    if (!character.IsPlayer() && !appliesToMobs.Value)
+                    var distance = Utils.DistanceXZ(m_localPlayer.transform.position, character.transform.position);
+                    int nickDistance, healthDistance;
+                    if (character.IsPlayer())
                     {
-                        nickObj.SetActive(true);
-                        healthObj.SetActive(true);
-                        continue;
+                        nickDistance = players_nameDistance.Value;
+                        healthDistance = players_barDistance.Value;
+                    } else
+                    {
+                        nickDistance = mobs_nameDistance.Value;
+                        healthDistance = mobs_barDistance.Value;
+                        var guiTransform = data.m_gui.transform;
+                        var Alerted = guiTransform.Find("Alerted").gameObject;
+                        Alerted.SetActive(mobs_alertedSignDistance.Value != 0 && distance < mobs_alertedSignDistance.Value);
+                        
+                        var showStars = mobs_starsDistance.Value != 0 && distance < mobs_starsDistance.Value;
+                        var level_2 = guiTransform.Find("level_2").gameObject;
+                        var level_3 = guiTransform.Find("level_3").gameObject;
+                        level_2.SetActive(showStars);
+                        level_3.SetActive(showStars);
                     }
 
-                    var distance = Utils.DistanceXZ(m_localPlayer.transform.position, character.transform.position);
-
-                    nickObj.SetActive(showNick.Value || distance < showNickMinDistance.Value);
-                    healthObj.SetActive(showBar.Value || distance < showBarMinDistance.Value);
+                    nickObj.SetActive(nickDistance != 0 && distance < nickDistance);
+                    healthObj.SetActive(healthDistance != 0 && distance < healthDistance);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                //idk why there is an exception here, but lets ignore it, okay?s
+                //idk why there is an exception here, but lets ignore it, okay?
             }
         }
     }
@@ -111,12 +134,6 @@ public class Plugin : BaseUnityPlugin
         bool synchronizedSetting = true)
     {
         return config(group, name, value, new ConfigDescription(description), synchronizedSetting);
-    }
-
-    private void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
-    {
-        setter(config.Value);
-        config.SettingChanged += (_, _) => setter(config.Value);
     }
 
     public enum Toggle
