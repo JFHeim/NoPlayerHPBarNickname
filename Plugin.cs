@@ -8,7 +8,7 @@ public class Plugin : BaseUnityPlugin
 {
     private const string
         ModName = "NoPlayerHPBarNickname",
-        ModVersion = "1.5.0",
+        ModVersion = "1.5.2",
         ModAuthor = "Frogger",
         ModGUID = $"com.{ModAuthor}.{ModName}";
 
@@ -19,6 +19,7 @@ public class Plugin : BaseUnityPlugin
     public static ConfigEntry<int> mobs_starsDistance;
     public static ConfigEntry<int> players_nameDistance;
     public static ConfigEntry<int> players_barDistance;
+    public static ConfigEntry<int> anyHudMaxShowDistance;
 
 
     private void Awake()
@@ -40,5 +41,8 @@ public class Plugin : BaseUnityPlugin
             "If player is more than this distance from player, his/her health bar will be hidden. Set to 0 to hide health bar completely");
         players_nameDistance = config("Players", "Players name distance", 2,
             "If player is more than this distance from player, his/her name will be hidden. Set to 0 to hide name completely");
+
+        anyHudMaxShowDistance = config("Other", "Any hud max show distance. Warning: Read description", 0,
+            "This overrides vanilla hud max show distance. Set to 0 to disable and keep vanilla value. Vanilla value is 30.");
     }
 }
