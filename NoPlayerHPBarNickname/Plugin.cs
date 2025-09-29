@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 
 namespace NoPlayerHPBarNickname;
@@ -9,7 +8,7 @@ public class Plugin : BaseUnityPlugin
 {
     private const string
         ModName = "NoPlayerHPBarNickname",
-        ModVersion = "1.5.4",
+        ModVersion = "1.6.0",
         ModAuthor = "Frogger",
         ModGuid = $"com.{ModAuthor}.{ModName}";
 
