@@ -1,0 +1,9 @@
+{
+    "name": "NoPlayerHPBarNickname",
+    "version_number": "1.5.4",
+    "website_url": "https://github.com/JFHeim/NoPlayerHPBarNickname",
+    "description": "You will no longer see health bars and names of other players. Also works on mobs if you want it",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.2333"
+    ]
+}

@@ -72,6 +72,7 @@
 
     <Target Name="CopyDLL" AfterTargets="ILRepack">
         <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(GameDir)BepInEx\plugins\"/>
+        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(SolutionDir)Thunderstore\"/>
         <Message Text="Copped $(TargetDir)$(ProjectName).dll to $(GameDir)BepInEx\plugins\"/>
     </Target>
 
