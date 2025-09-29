@@ -1,6 +1,6 @@
 {
     "name": "NoPlayerHPBarNickname",
-    "version_number": "1.5.4",
+    "version_number": "1.6.0",
     "website_url": "https://github.com/JFHeim/NoPlayerHPBarNickname",
     "description": "You will no longer see health bars and names of other players. Also works on mobs if you want it",
     "dependencies": [
