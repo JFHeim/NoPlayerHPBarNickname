@@ -55,7 +55,6 @@
         <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(GameDir)BepInEx\plugins\"/>
 
         <MakeDir Directories="$(SolutionDir)build" Condition="!Exists('$(SolutionDir)build\')"/>
-        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(SolutionDir)build\"/>
 
         <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(SolutionDir)Thunderstore\" Condition="Exists('$(SolutionDir)Thunderstore\')"/>
     </Target>
