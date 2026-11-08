@@ -4,37 +4,31 @@
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
 
-        <GameDir>/home/vych/.local/share/Steam/steamapps/common/Valheim/</GameDir>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <DebugType>embedded</DebugType>
+
+        <GameDir>$(VALHEIM_DIR)</GameDir>
+        <GameDir Condition="'$(GameDir)' == '' AND '$(OS)' == 'Windows_NT'">C:\Program Files (x86)\Steam\steamapps\common\Valheim\</GameDir>
+        <GameDir Condition="'$(GameDir)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.local/share/Steam/steamapps/common/Valheim/</GameDir>
         <ManagedAssemblesDir>$(GameDir)valheim_Data/Managed/</ManagedAssemblesDir>
         <BepInExDir>$(GameDir)BepInEx/</BepInExDir>
         <BepInExLibsDir>$(GameDir)BepInEx/core/</BepInExLibsDir>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-        <DebugType>embedded</DebugType>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-        <DebugType>none</DebugType>
-    </PropertyGroup>
-
     <ItemGroup>
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all"/>
-        <PackageReference Include="YamlDotNet" Version="16.3.0" />
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="JFUtils">
-            <HintPath>Lib\JFUtils.dll</HintPath>
-        </Reference>
+        <Reference Include="$(ManagedAssemblesDir)*.dll"/>
+        <None Update="$(ManagedAssemblesDir)*.pdb">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
 
         <Reference Include="0Harmony">
             <HintPath>$(BepInExLibsDir)0Harmony.dll</HintPath>
-        </Reference>
-        <Reference Include="BepInEx">
-            <HintPath>$(BepInExLibsDir)BepInEx.dll</HintPath>
         </Reference>
 
         <Reference Include="assembly_valheim" Publicize="true">
@@ -46,40 +40,23 @@
         <Reference Include="assembly_guiutils" Publicize="true">
             <HintPath>$(ManagedAssemblesDir)assembly_guiutils.dll</HintPath>
         </Reference>
-
-        <Reference Include="UnityEngine">
-            <HintPath>$(ManagedAssemblesDir)UnityEngine.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.CoreModule">
-            <HintPath>$(ManagedAssemblesDir)UnityEngine.CoreModule.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.TextMeshPro">
-            <HintPath>$(ManagedAssemblesDir)Unity.TextMeshPro.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.UI">
-            <HintPath>$(ManagedAssemblesDir)UnityEngine.UI.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.UIModule">
-            <HintPath>$(ManagedAssemblesDir)UnityEngine.UIModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.PhysicsModule">
-            <HintPath>$(ManagedAssemblesDir)UnityEngine.PhysicsModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.InputLegacyModule">
-            <HintPath>$(ManagedAssemblesDir)UnityEngine.InputLegacyModule.dll</HintPath>
+        <Reference Include="BepInEx" Publicize="true">
+            <HintPath>$(BepInExLibsDir)BepInEx.dll</HintPath>
         </Reference>
     </ItemGroup>
 
-    <Target Name="CopyDLL" AfterTargets="ILRepack">
-        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(GameDir)BepInEx\plugins\"/>
-        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(SolutionDir)Thunderstore\"/>
-        <Message Text="Copped $(TargetDir)$(ProjectName).dll to $(GameDir)BepInEx\plugins\"/>
+    <Target Name="ValidateGameDir" BeforeTargets="PrepareForBuild">
+        <Error
+            Condition="!Exists('$(GameDir)')"
+            Text="Valheim game directory not found at '$(GameDir)'. Please set the VALHEIM_DIR environment variable to the correct Valheim installation path. On Windows: set VALHEIM_DIR=C:\Program Files (x86)\Steam\steamapps\common\Valheim\ | On Linux: export VALHEIM_DIR=~/.local/share/Steam/steamapps/common/Valheim/" />
     </Target>
 
-    <ItemGroup>
-        <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.43">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-    </ItemGroup>
+    <Target Name="CopyDLL" AfterTargets="Build">
+        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(GameDir)BepInEx\plugins\"/>
+
+        <MakeDir Directories="$(SolutionDir)build" Condition="!Exists('$(SolutionDir)build\')"/>
+        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(SolutionDir)build\"/>
+
+        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="$(SolutionDir)Thunderstore\" Condition="Exists('$(SolutionDir)Thunderstore\')"/>
+    </Target>
 </Project>

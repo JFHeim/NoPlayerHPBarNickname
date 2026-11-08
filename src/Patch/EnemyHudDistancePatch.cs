@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using NoPlayerHPBarNickname.Config;
+using static NoPlayerHPBarNickname.Config.ConfigsContainer;
 
 namespace NoPlayerHPBarNickname;
 

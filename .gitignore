@@ -397,3 +397,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 Thunderstore/NoPlayerHPBarNickname.dll
+
+# Local build output
+/build/
