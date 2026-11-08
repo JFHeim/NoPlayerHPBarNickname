@@ -8,7 +8,7 @@ public class Plugin : BaseUnityPlugin
 {
     private const string
         ModName = "NoPlayerHPBarNickname",
-        ModVersion = "1.6.0",
+        ModVersion = "1.6.1",
         ModAuthor = "Frogger",
         ModGuid = $"com.{ModAuthor}.{ModName}";
 

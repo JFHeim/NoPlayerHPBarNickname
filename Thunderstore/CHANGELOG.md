@@ -2,3 +2,4 @@
 1.5.3 - Some more null checks<br>
 1.5.5 - Fixes for Valheim 1-0.221.4<br>
 1.6.0 - Fixes old bug with mob stars<br>
+1.6.1 - Fixes for Valheim 1.0: players could not join a host with the mod installed<br>
