@@ -400,3 +400,4 @@ Thunderstore/NoPlayerHPBarNickname.dll
 
 # Local build output
 /build/
+/.idea
